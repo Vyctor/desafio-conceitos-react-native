@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+import styles from "./styles";
+
 import api from "./services/api";
 
 export default function App() {
@@ -22,12 +24,15 @@ export default function App() {
   }, []);
 
   async function handleLikeRepository(id) {
-    const response = await api.post(`repositories/${id}/like`);
-    const project = response.data;
-    setRepositories([
-      ...repositories.filter((repository) => repository.id !== id),
-      response.data,
-    ]);
+    const response = await api.post(`/repositories/${id}/like`);
+
+    const repositoriesUpdated = repositories.map((repository) => {
+      if (repository.id === response.data.id)
+        repository.likes = response.data.likes;
+      return repository;
+    });
+
+    setRepositories(repositoriesUpdated);
   }
 
   return (
@@ -42,14 +47,16 @@ export default function App() {
               <Text style={styles.repository}>{repository.title}</Text>
 
               <View style={styles.techsContainer}>
-                <Text style={styles.tech}>ReactJS</Text>
-                <Text style={styles.tech}>Node.js</Text>
+                {repository.techs.map((tech) => (
+                  <Text key={tech} style={styles.tech}>
+                    {tech}
+                  </Text>
+                ))}
               </View>
 
               <View style={styles.likesContainer}>
                 <Text
                   style={styles.likeText}
-                  // Remember to replace "1" below with repository ID: {`repository-likes-${repository.id}`}
                   testID={`repository-likes-${repository.id}`}
                 >
                   {`${repository.likes} curtidas`}
@@ -59,7 +66,6 @@ export default function App() {
               <TouchableOpacity
                 style={styles.button}
                 onPress={() => handleLikeRepository(repository.id)}
-                // Remember to replace "1" below with repository ID: {`like-button-${repository.id}`}
                 testID={`like-button-${repository.id}`}
               >
                 <Text style={styles.buttonText}>Curtir</Text>
@@ -71,58 +77,3 @@ export default function App() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#7159c1",
-  },
-  repositoryContainer: {
-    marginTop: 20,
-    marginBottom: 15,
-    marginHorizontal: 15,
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 20,
-  },
-  repository: {
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-  techsContainer: {
-    flexDirection: "row",
-    marginTop: 10,
-  },
-  tech: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginRight: 10,
-    backgroundColor: "#04d361",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    color: "#fff",
-  },
-  likesContainer: {
-    marginTop: 15,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  likeText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginRight: 10,
-  },
-  button: {
-    marginTop: 20,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    letterSpacing: 5,
-    marginRight: 10,
-    textAlign: "center",
-    color: "#fff",
-    backgroundColor: "#7159c1",
-    padding: 15,
-  },
-});
